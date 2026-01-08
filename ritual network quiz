@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritual Network Mastery Trial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0D0A1B;
+            color: #E5E7EB;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 768px;
+            width: 100%;
+            background-color: #1A152D;
+            border: 2px solid #27203b;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(147, 51, 234, 0.2);
+            padding: 2.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .option-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            border-radius: 10px;
+            border: 1px solid #27203b;
+            background-color: #1a152d;
+            color: #E5E7EB;
+            transition: background-color 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+            cursor: pointer;
+            word-wrap: break-word;
+        }
+        .option-button:hover:not(:disabled) {
+            background-color: #27203b;
+            border-color: #9333ea;
+            transform: translateY(-2px);
+        }
+        .option-button:disabled {
+            cursor: default;
+        }
+        .correct-answer {
+            background-color: #10B981 !important;
+            border-color: #059669 !important;
+            color: #ffffff;
+        }
+        .incorrect-answer {
+            background-color: #EF4444 !important;
+            border-color: #DC2626 !important;
+            color: #ffffff;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #9333ea;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+        .primary-btn {
+            background-color: #9333ea;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 1rem 2.5rem;
+            border-radius: 10px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px #7c3aed;
+            border: none;
+            cursor: pointer;
+        }
+        .primary-btn:hover {
+            background-color: #a855f7;
+            transform: translateY(1px);
+            box-shadow: 0 3px #7c3aed;
+        }
+        .ritual-title {
+            background-image: linear-gradient(to right, #C084FC, #DB2777);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-app" class="quiz-container">
+        <h1 class="text-4xl font-extrabold mb-1 text-center ritual-title">
+            RITUAL NETWORK
+        </h1>
+        <p id="quiz-subtitle" class="text-xl text-center mb-4 text-purple-400 hidden">Road to the Ascension.</p>
+
+        <div id="status-bar" class="mb-6 hidden">
+            <div class="flex justify-between items-center mb-2">
+                 <p id="session-info" class="text-lg font-medium text-gray-200">
+                    Question 0 of 10
+                </p>
+                <p id="score-display" class="text-lg font-bold text-purple-400">
+                    Score: 0
+                </p>
+            </div>
+            <div id="progress-container" class="w-full bg-[#27203b] rounded-full h-3">
+                <div id="progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="quiz-content" class="min-h-[250px] flex flex-col justify-center">
+            <div id="welcome-screen" class="text-center">
+                <h2 class="text-4xl font-bold mb-8 text-purple-400">
+                    How well do you know Ritual?
+                </h2>
+                <button id="start-quiz-btn" class="primary-btn">
+                    PROVE YOUR MASTERY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ALL_QUESTIONS = [
+            { q: "What is the primary purpose of Ritual Chain?", a: "AI-native onchain compute", options: ["Gaming optimization", "AI-native onchain compute", "Social media governance", "NFT storage"] },
+            { q: "When was the Ritual team founded?", a: "2023", options: ["2021", "2022", "2023", "2025"] },
+            { q: "What problem in the AI industry does Ritual aim to address?", a: "Centralization and opacity of AI models", options: ["Slow internet connections", "Centralization and opacity of AI models", "Lack of gaming support", "Energy inefficiency in Bitcoin mining"] },
+            { q: "Which early Ritual product was the first oracle network for AI?", a: "Infernet", options: ["Frenrug", "vTune", "Infernet", "Symphony"] },
+            { q: "What was Frenrug designed to showcase?", a: "Multi-agent onchain actions", options: ["NFT auctions", "Multi-agent onchain actions", "Stablecoin mechanics", "ZK Proof compression"] },
+            { q: "Why are current blockchains not well-suited for AI workloads?", a: "Replicated execution across identical hardware", options: ["Lack of bandwidth", "Replicated execution across identical hardware", "No support for NFTs", "Limited user wallets"] },
+            { q: "What term does Ritual use for diverse computational resources like AI models?", a: "Expressive compute", options: ["Expressive compute", "Hybrid consensus", "Sacred oracles", "Modular proofs"] },
+            { q: "Which extension powers Ritual's EVM environment?", a: "EVM++", options: ["zkEVM", "EVM++", "RollEVM", "AI-EVM"] },
+            { q: "What are Ritual Sidecars used for?", a: "Running AI inference outside the execution client", options: ["Managing validator elections", "Running AI inference outside the execution client", "Encrypting wallet keys", "Token minting"] },
+            { q: "Which feature lets nodes specialize in servicing workloads based on hardware?", a: "Node Specialization", options: ["Resonance", "Symphony", "Node Specialization", "Verifiable Provenance"] },
+            { q: "Which mechanism does Ritual use to price compute across heterogeneous hardware?", a: "Resonance", options: ["Proof of Work", "Resonance", "Delegated staking", "Gas auctions"] },
+            { q: "What does Symphony optimize in Ritual?", a: "Consensus for resource-intensive computations", options: ["NFT royalties", "Consensus for resource-intensive computations", "Wallet key recovery", "Token bridging"] },
+            { q: "What is the purpose of Scheduled Transactions?", a: "Auto-execute transactions based on conditions", options: ["Mint NFTs periodically", "Auto-execute transactions based on conditions", "Reduce staking rewards", "Upgrade validators"] },
+            { q: "Which of the following is NOT a Ritual Sidecar?", a: "GPU Mining", options: ["LLM Inference", "ZK Proving", "TEE Code Execution", "GPU Mining"] },
+            { q: "What is vTune used for?", a: "Proving model ownership and attribution", options: ["AI training", "Proving model ownership and attribution", "Token inflation", "Sharding"] },
+            { q: "Which verification method is NOT supported by Ritual?", a: "Proof-of-Work mining", options: ["Zero-knowledge ML", "TEE attestations", "Optimistic ML", "Proof-of-Work mining"] },
+            { q: "What consensus model does Symphony use?", a: "Execute-Once-Verify-Many-Times", options: ["Execute-Many-Verify-Once", "Execute-Once-Verify-Many-Times", "Proof of Authority", "Byzantine Fault Tolerance"] },
+            { q: "Which Ritual primitive enables rollups to access specialized compute?", a: "Hypercustomizable RaaS", options: ["Hypercustomizable RaaS", "Frenrug", "Infernet", "Oracles of Light"] },
+            { q: "What problem do current prover networks face that Ritual solves?", a: "Inability to price special-purpose proof systems", options: ["Too many validators", "Inability to price special-purpose proof systems", "Lack of NFT markets", "Gas fee spikes"] },
+            { q: "Which integration provides censorship-resistant storage for Ritual's model marketplaces?", a: "HuggingFace & Arweave", options: ["Filecoin", "HuggingFace & Arweave", "Dropbox", "Google Drive"] }
+        ];
+        const SESSION_QUESTION_COUNT = 10;
+
+        let randomizedQuestions = [];
+        let currentQuestionIndex = 0;
+        let currentSessionScore = 0;
+        let answeredThisQuestion = false;
+        
+        const quizContent = document.getElementById('quiz-content');
+        const statusBar = document.getElementById('status-bar');
+        const quizSubtitle = document.getElementById('quiz-subtitle');
+        const sessionInfo = document.getElementById('session-info');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function getRandomSessionQuestions(count) {
+            const questionsCopy = [...ALL_QUESTIONS];
+            shuffleArray(questionsCopy);
+            return questionsCopy.slice(0, count);
+        }
+
+        function startQuiz() {
+            randomizedQuestions = getRandomSessionQuestions(SESSION_QUESTION_COUNT);
+            statusBar.classList.remove('hidden');
+            quizSubtitle.classList.remove('hidden');
+            currentQuestionIndex = 0;
+            currentSessionScore = 0;
+            updateStatus();
+            renderQuestion();
+        }
+
+        function updateStatus() {
+            const currentQNum = currentQuestionIndex + 1;
+            sessionInfo.textContent = `Question ${currentQNum} of ${SESSION_QUESTION_COUNT}`;
+            scoreDisplay.textContent = `Score: ${currentSessionScore}`;
+            const percentage = (currentQuestionIndex / SESSION_QUESTION_COUNT) * 100;
+            progressBar.style.width = `${percentage}%`;
+        }
+
+        function renderQuestion() {
+            answeredThisQuestion = false;
+
+            if (currentQuestionIndex >= SESSION_QUESTION_COUNT) {
+                renderFinalScore();
+                return;
+            }
+
+            const currentQ = randomizedQuestions[currentQuestionIndex];
+            let optionsToRender = [...currentQ.options];
+            shuffleArray(optionsToRender);
+            const questionNumber = currentQuestionIndex + 1;
+
+            let html = `
+                <div id="question-card" class="mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-purple-400">
+                        Question ${questionNumber}
+                    </h3>
+                    <p class="text-2xl font-semibold mb-6 text-gray-100">${currentQ.q}</p>
+                    <div id="options-container">
+            `;
+
+            optionsToRender.forEach((option, index) => {
+                html += `
+                    <button class="option-button" data-answer="${option}" onclick="handleAnswer(this)">
+                        ${String.fromCharCode(65 + index)}) ${option}
+                    </button>
+                `;
+            });
+
+            html += `
+                    </div>
+                    <div id="feedback" class="mt-4 text-center font-bold min-h-[1.5rem]"></div>
+                </div>
+                <button id="next-btn" onclick="nextQuestion()" class="w-full px-6 py-3 bg-[#27203b] text-white font-bold rounded-lg transition duration-200 mt-4 opacity-50 cursor-not-allowed" disabled>
+                    NEXT
+                </button>
+            `;
+
+            quizContent.innerHTML = html;
+            updateStatus();
+        }
+
+        function handleAnswer(selectedButton) {
+            if (answeredThisQuestion) return;
+            answeredThisQuestion = true;
+            
+            const selectedAnswer = selectedButton.getAttribute('data-answer');
+            const currentQ = randomizedQuestions[currentQuestionIndex];
+            const correctAnswer = currentQ.a;
+
+            const optionsContainer = document.getElementById('options-container');
+            const feedback = document.getElementById('feedback');
+            const nextBtn = document.getElementById('next-btn');
+
+            let isCorrect = selectedAnswer === correctAnswer;
+
+            Array.from(optionsContainer.children).forEach(button => {
+                button.disabled = true;
+                const buttonAnswer = button.getAttribute('data-answer');
+                if (buttonAnswer === correctAnswer) {
+                    button.classList.add('correct-answer');
+                } else if (buttonAnswer === selectedAnswer) {
+                    button.classList.add('incorrect-answer');
+                }
+            });
+
+            if (isCorrect) {
+                currentSessionScore++;
+                feedback.textContent = "✅ Correct. Proceeding...";
+                feedback.classList.add('text-green-400');
+            } else {
+                feedback.textContent = `❌ Incorrect. The correct answer was: ${correctAnswer}`;
+                feedback.classList.add('text-red-400');
+            }
+
+            scoreDisplay.textContent = `Score: ${currentSessionScore}`;
+            nextBtn.disabled = false;
+            nextBtn.classList.remove('bg-[#27203b]', 'opacity-50', 'cursor-not-allowed');
+            nextBtn.classList.add('primary-btn');
+            nextBtn.textContent = (currentQuestionIndex === SESSION_QUESTION_COUNT - 1) ? "VIEW FINAL SCORE" : "NEXT QUESTION";
+        }
+
+        function nextQuestion() {
+            if (!answeredThisQuestion) return;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < SESSION_QUESTION_COUNT) {
+                renderQuestion();
+            } else {
+                progressBar.style.width = '100%';
+                renderFinalScore();
+            }
+        }
+
+        function renderFinalScore() {
+            statusBar.classList.add('hidden'); 
+            quizSubtitle.classList.add('hidden'); 
+
+            const percentage = (currentSessionScore / SESSION_QUESTION_COUNT) * 100;
+            let title = '';
+            let message = '';
+            let colorClass = 'text-purple-400';
+
+            if (currentSessionScore >= 8) {
+                title = 'RITUAL MASTER';
+                message = 'A perfect understanding! You have mastered the essential knowledge required for the Ritual Network.';
+                colorClass = 'text-green-400';
+            } else if (currentSessionScore >= 6) {
+                title = 'RITUAL ASCENDANT';
+                message = 'Excellent performance. You are well on the road to the Ascension. Keep advancing your knowledge!';
+                colorClass = 'text-purple-400'; 
+            } else {
+                title = 'STUDY THE RITUAL';
+                message = 'Your journey has just begun. Re-engage with the core concepts and prove your mastery in the next trial.';
+                colorClass = 'text-red-400';
+            }
+
+            let html = `
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold mb-4 ${colorClass}">${title}</h2>
+                    <p class="text-xl mb-6 text-gray-400">${message}</p>
+                    <div class="bg-[#27203b] p-8 rounded-lg inline-block border border-[#1a152d]">
+                        <p class="text-5xl font-extrabold mb-2 text-purple-400">
+                            ${currentSessionScore} / ${SESSION_QUESTION_COUNT}
+                        </p>
+                        <p class="text-2xl font-medium text-gray-100">
+                            Final Score (${percentage.toFixed(1)}%)
+                        </p>
+                    </div>
+                    <button id="restart-btn" onclick="startQuiz()" class="primary-btn w-full mt-8">
+                        PLAY AGAIN
+                    </button>
+                </div>
+            `;
+            quizContent.innerHTML = html;
+        }
+
+        window.onload = () => {
+            if (startQuizBtn) {
+                startQuizBtn.addEventListener('click', startQuiz);
+            }
+        };
+
+    </script>
+
+</body>
+</html>
